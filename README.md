@@ -7,12 +7,11 @@ HDF5 data utilities for PyTorch.
 Loading data from HDF5 files allows for efficient data-loading from an **on-disk** format, drastically reducing memory overhead. Additionally, you will find your datasets to be more **organized** using the HDF5 format, as everything is neatly arrayed in a single file.
 
 ## Install
+Since PyTorch is a dependency of `h5torch`, we recommend [installing PyTorch](https://pytorch.org/get-started/locally/) independently first, as your system may require a specific version (e.g. CUDA drivers).
+
+After PyTorch installation, `h5torch` can be installed using `pip`
 ```bash
-conda create -n "gaetan_h5torch" python=3.10
-# install torch manually for your specific system
-git clone https://github.com/gdewael/h5torch
-cd h5torch
-pip install -e .
+pip install h5torch
 ```
 
 ## Usage
