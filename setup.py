@@ -20,6 +20,6 @@ setup(
         "h5py",
         "torch",
         "scipy"
-
     ],
+    use_scm_version=True
 )
