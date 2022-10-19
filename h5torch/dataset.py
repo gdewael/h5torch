@@ -1,10 +1,10 @@
 from torch.utils import data
 import h5torch
 import numpy as np
-
+from typing import Union, Literal
 
 class Dataset(data.Dataset):
-    def __init__(self, path, sampling = 0):
+    def __init__(self, path: str, sampling: Union[int, Literal["coo"]] = 0):
         self.f = h5torch.File(path)
         if "central" not in self.f:
             raise ValueError("\"central\" data object was not found in input file.")
@@ -51,8 +51,8 @@ class Dataset(data.Dataset):
             sample["%s/%s" % (axis, key)] = mode_to_sampler[h5object.attrs["mode"]](h5object, index) # type: ignore
         return sample
 
-
-    np.unravel_index(15, (2,4,5))
+    def close(self):
+        self.f.close()
 
 sample_default = lambda h5object, index : h5object[index]
 sample_separate = lambda h5object, index : h5object[str(index)][()]
