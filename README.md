@@ -1,5 +1,13 @@
-# h5torch
+<div align="center">
+<h1>h5torch</h1>
+
 HDF5 data utilities for PyTorch.
+
+
+[![PyPi Version](https://img.shields.io/pypi/v/h5torch.svg)](https://pypi.python.org/pypi/h5torch/)
+[![GitHub license](https://img.shields.io/github/license/gdewael/h5torch)](https://github.com/gdewael/h5torch/blob/main/LICENSE)
+
+</div>
 
 `h5torch` consists of two main parts: (1) `h5torch.File`: a wrapper around `h5py.File` as an interface to create HDF5 files compatible with (2) `h5torch.Dataset`, a wrapper around `torch.utils.data.Dataset`. As a library, `h5torch` establishes a "code" for how datasets should be saved, hence allowing dataloading of various machine learning data settings from a single dataset object, reducing boilerplate in your projects.
 
@@ -35,7 +43,7 @@ Besides the central and axis objects, you can also store `unstructured` data whi
 
 #### Sampling
 
-Once a dataset is createed using `h5torch.File`, it can be used as a PyTorch Dataset using `h5torch.Dataset`. Sampling can occur along any of the axes in the central object, upon which the corresponding indices in the objects aligned to that axis are also sampled. Alternatively, `coo` sampling (available for `N-D` and `coo`-type central objects) samples one specific element of the central dataset, along with the corresponding indices of all axis-aligned objects.
+Once a dataset is created using `h5torch.File`, it can be used as a PyTorch Dataset using `h5torch.Dataset`. Sampling can occur along any of the axes in the central object, upon which the corresponding indices in the objects aligned to that axis are also sampled. Alternatively, `coo` sampling (available for `N-D` and `coo`-type central objects) samples one specific element of the central dataset, along with the corresponding indices of all axis-aligned objects.
 
 <img src="./h5torch/img/h5torch.svg" width="750">
 
