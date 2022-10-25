@@ -115,7 +115,8 @@ Note: `h5torch` does not limit the number of possible dimensions along its centr
 
 
 # Package roadmap
-- [ ] Implement typing
+- [x] Implement typing
 - [ ] Provide data type conversion capabilities for registering datasets
-- [ ] Add support for custom samplers
-- [ ] Add support for making data splits
+- [x] Add support for custom samplers
+- [x] Add support for making data splits
+- [ ] Implement a collater for variable length objects

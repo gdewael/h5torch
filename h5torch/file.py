@@ -132,5 +132,5 @@ class File(h5py.File):
         self[name].attrs["mode"] = "separate"
 
     def __repr__(self):
-        f = h5py.File.__repr__(self)
-        return f[0] + "h5torch" + f[5:]
+        f = h5py.File.__repr__(self).split("HDF5 file")
+        return f[0] + "h5torch file" + f[1]

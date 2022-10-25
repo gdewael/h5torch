@@ -1,10 +1,17 @@
 from torch.utils import data
 import h5torch
 import numpy as np
-from typing import Union, Literal
+from typing import Union, Literal, Tuple, Optional, Callable
+import re
 
 class Dataset(data.Dataset):
-    def __init__(self, path: str, sampling: Union[int, Literal["coo"]] = 0):
+    def __init__(
+        self,
+        path: str,
+        sampling: Union[int, Literal["coo"]] = 0,
+        subset: Optional[Union[Tuple[str, str], np.ndarray]] = None,
+        sample_processor: Optional[Callable] = None,
+    ):
         """
         h5torch.Dataset object.
 
@@ -13,7 +20,12 @@ class Dataset(data.Dataset):
         path: str
             Path to the saved HDF5 file.
         sampling: Union[int, Literal[&quot;coo&quot;]]
-            Sampling axis.
+            Sampling axis, by default 0
+        subset: Optional[Union[Tuple[str, str], np.ndarray]]
+            subset of data to use in dataset.
+            Either: a np.ndarray of indices or np.ndarray containing booleans.
+            Or: a tuple of 2 strings with the first specifying a key in the dataset and the second a regex that must match in that dataset.
+            By default None, specifying to use the whole dataset as is.
         """
         self.f = h5torch.File(path)
         if "central" not in self.f:
@@ -22,20 +34,41 @@ class Dataset(data.Dataset):
             raise TypeError('`sampling` should be either "coo" or `int`')
         if (sampling == "coo") and (self.f["central"].attrs["mode"] not in ["coo", "N-D"]):
             raise ValueError("`coo` sampling only works with central objects stored in `coo` or `N-D` mode")
-        if isinstance(sampling, int) and (sampling >= len(self.f["central"].attrs["shape"])): # type: ignore
+        if isinstance(sampling, int) and (sampling >= len(self.f["central"].attrs["shape"])): 
             raise ValueError("given sampling axis exceeds the number of axes in central data object")
         if isinstance(sampling, int) and (sampling > 0) and (self.f["central"].attrs["mode"] == "csr"):
             raise ValueError("sampling axis can maximally be `0` for central objects in `csr` mode ")
         self.sampling = sampling
 
-    def __len__(self):
-        if (self.sampling == "coo") and (self.f["central"].attrs["mode"] == "coo"):
-            return self.f["central"]["data"].shape[0] # type: ignore
-        elif (self.sampling == "coo") and (self.f["central"].attrs["mode"] == "N-D"):
-            return self.f["central"].size # type: ignore
+        if isinstance(subset, np.ndarray) and subset.ndim > 1:
+            raise ValueError("`subset` can not have more than one dimension.")
+        if isinstance(subset, np.ndarray) and (subset.dtype == np.bool_):
+            subset = np.where(subset)[0]
+        elif isinstance(subset, tuple):
+            matcher = np.vectorize(lambda x: bool(re.match(subset[1], x)))
+            subset = np.where(matcher(self.f[subset[0]][:].astype(str)))[0] 
         else:
-            return self.f["central"].attrs["shape"][self.sampling] # type: ignore
+            subset = np.arange(self.__len_without_subset__())
+        self.indices = subset
+
+        if sample_processor is None:
+            self.sample_processor = lambda f, sample : sample
+        else:
+            self.sample_processor = sample_processor
+
+    def __len_without_subset__(self):
+        if (self.sampling == "coo") and (self.f["central"].attrs["mode"] == "coo"):
+            return self.f["central"]["data"].shape[0] 
+        elif (self.sampling == "coo") and (self.f["central"].attrs["mode"] == "N-D"):
+            return self.f["central"].size 
+        else:
+            return self.f["central"].attrs["shape"][self.sampling]
+
+    def __len__(self):
+        return len(self.indices)
+
     def __getitem__(self, index):
+        index = self.indices[index]
         sample = {}
 
         if self.sampling == "coo":
@@ -52,7 +85,7 @@ class Dataset(data.Dataset):
         else:
             sample["central"] = np.take(self.f["central"], index, self.sampling) # type: ignore
             sample |= self.sample_axis(self.sampling, index, self.f[str(self.sampling)].keys()) # type: ignore
-        return sample
+        return self.sample_processor(self.f, sample)
 
     def sample_axis(self, axis, index, keys):
         sample = {}
