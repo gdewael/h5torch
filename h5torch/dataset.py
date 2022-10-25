@@ -5,6 +5,16 @@ from typing import Union, Literal
 
 class Dataset(data.Dataset):
     def __init__(self, path: str, sampling: Union[int, Literal["coo"]] = 0):
+        """
+        h5torch.Dataset object.
+
+        Parameters
+        ----------
+        path: str
+            Path to the saved HDF5 file.
+        sampling: Union[int, Literal[&quot;coo&quot;]]
+            Sampling axis.
+        """
         self.f = h5torch.File(path)
         if "central" not in self.f:
             raise ValueError("\"central\" data object was not found in input file.")

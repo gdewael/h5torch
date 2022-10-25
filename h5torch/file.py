@@ -5,8 +5,10 @@ from typing import Optional, Literal, Union, List, Tuple, Sequence
 
 
 class File(h5py.File):
-    def __init__(self, path, mode="r"):
+    def __init__(self, path: str, mode: Literal["r", "r+", "x", "w-", "a", "w"] = "r"):
         super().__init__(path, mode)
+        """Initializes a file handle to a HDF5 file.
+        """
 
     def register(
         self,
@@ -16,9 +18,29 @@ class File(h5py.File):
         mode: Literal["N-D", "csr", "coo", "vlen", "separate"] = "N-D",
         dtype: Optional[str] = None,
     ) -> None:
-        """
-        Note: if mode = "coo": then data should be a tuple consisting of indices, data and a shape.
-        If it's a np.ndarray, it will be first converted to a 2D scipy.sparse.coo_matrix
+        """Registers a new dataset to a HDF5 file.
+
+        Parameters
+        ----------
+        data : Union[List, np.ndarray, Tuple[np.ndarray, np.ndarray, Sequence]]
+            Data to save.
+
+            If mode == "N-D" or "csr", expects an `np.ndarray`
+
+            If mode == "coo", expects either a 2D `np.ndarray` or a Tuple: indices (N, M), values (M) and shape (..)*N
+
+            If mode == "vlen", expects a List of 1D np.ndarrays
+
+            If mode == "separate", expects a List of np.ndarrays  
+
+        axis : Union[int, Literal[&quot;central&quot;, &quot;unstructured&quot;]]
+            Axis to align the dataset to. The first dataset that should be registered to a HDF5 file should always be the central dataset.
+        name : Optional[str], optional
+            name of the dataset, ignored in the case of axis == "central", mandatory in the case of an alignment axis, by default None
+        mode : Literal[&quot;N-D&quot;, &quot;csr&quot;, &quot;coo&quot;, &quot;vlen&quot;, &quot;separate&quot;], optional
+            mode in which to save the data, by default "N-D"
+        dtype : Optional[str], optional
+            data type in which to save the data, by default None
         """
         if isinstance(name, str) and ("/" in name):
             raise ValueError(
@@ -37,9 +59,9 @@ class File(h5py.File):
                 "given alignment axis exceeds the number of axes in central data object"
             )
         if mode == "csr":
-            data = sparse.csr_matrix(data) # type: ignore
+            data = sparse.csr_matrix(data)  # type: ignore
         len_ = len(data) if not isinstance(data, sparse.csr_matrix) else data.shape[0]
-        if mode != "coo" and isinstance(axis, int) and (len_ != self["central"].attrs["shape"][axis]): # type: ignore
+        if mode != "coo" and isinstance(axis, int) and (len_ != self["central"].attrs["shape"][axis]):  # type: ignore
             raise ValueError(
                 """the number of rows in the given data does not equal the number of elements in the
                 central data object along its alignment axis."""
@@ -71,9 +93,6 @@ class File(h5py.File):
 
         # data = data.astype(np.dtype(dtype)))
 
-    def __repr__(self):
-        f = h5py.File.__repr__(self)
-        return f[0] + "h5torch" + f[5:]
 
     def _ND_register(self, data, name, dtype):
         self.create_dataset(name, data=data)
@@ -111,3 +130,7 @@ class File(h5py.File):
 
         self[name].attrs["shape"] = (len(data),)
         self[name].attrs["mode"] = "separate"
+
+    def __repr__(self):
+        f = h5py.File.__repr__(self)
+        return f[0] + "h5torch" + f[5:]
