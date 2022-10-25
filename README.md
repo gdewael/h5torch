@@ -14,6 +14,15 @@ HDF5 data utilities for PyTorch.
 ### :weary: but y tho?
 Loading data from HDF5 files allows for efficient data-loading from an **on-disk** format, drastically reducing memory overhead. Additionally, you will find your datasets to be more **organized** using the HDF5 format, as everything is neatly arrayed in a single file.
 
+## Install
+Since PyTorch is a dependency of `h5torch`, we recommend [installing PyTorch](https://pytorch.org/get-started/locally/) independently first, as your system may require a specific version (e.g. CUDA drivers).
+
+After PyTorch installation, `h5torch` can be installed using `pip`
+```bash
+pip install h5torch
+```
+
+
 ### Package concepts
 
 #### Storing
@@ -46,14 +55,6 @@ Besides the central and axis objects, you can also store `unstructured` data whi
 Once a dataset is created using `h5torch.File`, it can be used as a PyTorch Dataset using `h5torch.Dataset`. Sampling can occur along any of the axes in the central object, upon which the corresponding indices in the objects aligned to that axis are also sampled. Alternatively, `coo` sampling (available for `N-D` and `coo`-type central objects) samples one specific element of the central dataset, along with the corresponding indices of all axis-aligned objects.
 
 <img src="./h5torch/img/h5torch.svg" width="750">
-
-## Install
-Since PyTorch is a dependency of `h5torch`, we recommend [installing PyTorch](https://pytorch.org/get-started/locally/) independently first, as your system may require a specific version (e.g. CUDA drivers).
-
-After PyTorch installation, `h5torch` can be installed using `pip`
-```bash
-pip install h5torch
-```
 
 ## Usage
 
