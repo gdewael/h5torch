@@ -140,12 +140,16 @@ class SliceDataset(Dataset):
         path: str,
         sampling: Union[int, Literal["coo"]] = 0,
         sample_processor: Optional[Callable] = None,
-        window_size = 501,
-        overlap = 0,
-        window_indices = None
+        window_size: int = 501,
+        overlap: int = 0,
+        window_indices: Optional[np.ndarray] = None
     ):
         """
-        h5torch.Dataset object.
+        h5torch.SliceDataset object. Takes slices from the central object (and the sampled axis) as samples.
+        The default behavior is to take slices starting from the first element with size `window_size` and optionally overlapping by `overlap` elements.
+        If the last slice of the data would be an incomplete sample, it would be thrown away.
+
+        If `window_indices` is specified, then `window_size` and `overlap` is ignored.
 
         Parameters
         ----------
@@ -153,11 +157,14 @@ class SliceDataset(Dataset):
             Path to the saved HDF5 file.
         sampling: Union[int, Literal[&quot;coo&quot;]]
             Sampling axis, by default 0
-        subset: Optional[Union[Tuple[str, str], np.ndarray]]
-            subset of data to use in dataset.
-            Either: a np.ndarray of indices or np.ndarray containing booleans.
-            Or: a tuple of 2 strings with the first specifying a key in the dataset and the second a regex that must match in that dataset.
-            By default None, specifying to use the whole dataset as is.
+        window_size: int
+            Size of the slices in number of elements
+        overlap: int
+            Overlap of each slice in number of elements
+        window_indices: Optional[np.ndarray]
+            A np.ndarray of size N x 2 with N the number of slices. Each row specifies the start and end index of each slice.
+            (End indices are not included in python-slicing style)
+            Can be used to overwrite `window_size` and `overlap` default behavior and/or to specify subsets as training/validation/test sets.
         """
         super().__init__(
             path,
