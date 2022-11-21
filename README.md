@@ -120,4 +120,5 @@ Note: `h5torch` does not limit the number of possible dimensions along its centr
 - [x] Add support for custom samplers
 - [x] Add support for making data splits
 - [ ] Implement a collater for variable length objects
-- [ ] Add a slice sampler
+- [x] Add a slice sampler
+- [ ] Implement a way to pre-specify dataset size and append to it
