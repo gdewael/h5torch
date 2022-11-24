@@ -34,8 +34,8 @@ class Dataset(data.Dataset):
             raise ValueError('"central" data object was not found in input file.')
         if (sampling != "coo") and not isinstance(sampling, int):
             raise TypeError('`sampling` should be either "coo" or `int`')
-        if (sampling != "coo") and (self.f["central"].attrs["mode"] ==  "coo"):
-            raise ValueError('`coo` central objects require `coo` sampling')
+        if (sampling != "coo") and (self.f["central"].attrs["mode"] == "coo"):
+            raise ValueError("`coo` central objects require `coo` sampling")
         if (sampling == "coo") and (
             self.f["central"].attrs["mode"] not in ["coo", "N-D"]
         ):
@@ -142,7 +142,7 @@ class SliceDataset(Dataset):
         sample_processor: Optional[Callable] = None,
         window_size: int = 501,
         overlap: int = 0,
-        window_indices: Optional[np.ndarray] = None
+        window_indices: Optional[np.ndarray] = None,
     ):
         """
         h5torch.SliceDataset object. Takes slices from the central object (and the sampled axis) as samples.
@@ -167,29 +167,32 @@ class SliceDataset(Dataset):
             Can be used to overwrite `window_size` and `overlap` default behavior and/or to specify subsets as training/validation/test sets.
         """
         super().__init__(
-            path,
-            sampling = sampling,
-            subset = None,
-            sample_processor = sample_processor
-            )
+            path, sampling=sampling, subset=None, sample_processor=sample_processor
+        )
         if not isinstance(sampling, int):
-            raise TypeError('`sampling` should be `int`')
-        if self.f["central"].attrs["mode"] ==  "coo":
-            raise ValueError('`SliceDataset` is incompatible with `coo` central objects')
-        if self.f["central"].attrs["mode"] ==  "csr":
-            raise ValueError('`SliceDataset` is not (yet) compatible with `csr` central objects')
+            raise TypeError("`sampling` should be `int`")
+        if self.f["central"].attrs["mode"] == "coo":
+            raise ValueError(
+                "`SliceDataset` is incompatible with `coo` central objects"
+            )
+        if self.f["central"].attrs["mode"] == "csr":
+            raise ValueError(
+                "`SliceDataset` is not (yet) compatible with `csr` central objects"
+            )
 
         if window_indices is not None:
             if (window_indices.ndim != 2) or (window_indices.shape[1] != 2):
-                raise ValueError('`window_indices` must be an Nx2 array')
+                raise ValueError("`window_indices` must be an Nx2 array")
             self.indices = window_indices
 
         else:
             len_ = self.f["central"].attrs["shape"][self.sampling]
-            indices = np.stack([
-                np.arange(0, len_, window_size-overlap),
-                np.arange(0, len_, window_size-overlap) + window_size
-            ]).T
+            indices = np.stack(
+                [
+                    np.arange(0, len_, window_size - overlap),
+                    np.arange(0, len_, window_size - overlap) + window_size,
+                ]
+            ).T
 
             indices = indices[~(indices > len_).sum(1).astype(bool)]
             self.indices = indices
@@ -201,7 +204,9 @@ class SliceDataset(Dataset):
         index = self.indices[index]
         return np.arange(index[0], index[1])
 
+
 sample_default = lambda h5object, index: apply_dtype(h5object, h5object[index])
+
 
 def sample_vlen(h5object, index):
     if isinstance(index, (int, np.integer)):
@@ -210,7 +215,8 @@ def sample_vlen(h5object, index):
         res = np.empty(len(index), object)
         res[:] = [apply_dtype(h5object, i) for i in h5object[index]]
         return res
-    
+
+
 def sample_separate(h5object, index):
     if isinstance(index, (int, np.integer)):
         return apply_dtype(h5object, h5object[str(index)][()])
@@ -231,7 +237,9 @@ def sample_csr(h5object, index):
     if isinstance(index, (int, np.integer)):
         return apply_dtype(h5object, sample_csr_oneindex(h5object, index))
     else:
-        return apply_dtype(h5object, np.stack([sample_csr_oneindex(h5object, i) for i in index]))
+        return apply_dtype(
+            h5object, np.stack([sample_csr_oneindex(h5object, i) for i in index])
+        )
 
 
 def sample_coo(h5object, index):
