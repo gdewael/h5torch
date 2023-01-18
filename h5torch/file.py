@@ -20,7 +20,7 @@ class File(h5py.File):
                         shape = self[name].attrs["shape"][0]
                         if filled_to != shape:
                             warnings.warn("object \"%s\" has not been completely filled to its pre-specified length (%s / %s filled)" % (name, filled_to, shape))
-                else:
+                elif key == "central":
                     name = key
                     filled_to = self[name].attrs["filled_to"]
                     shape = self[name].attrs["shape"][0]
