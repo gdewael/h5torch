@@ -175,10 +175,6 @@ class SliceDataset(Dataset):
             raise ValueError(
                 "`SliceDataset` is incompatible with `coo` central objects"
             )
-        if self.f["central"].attrs["mode"] == "csr":
-            raise ValueError(
-                "`SliceDataset` is not (yet) compatible with `csr` central objects"
-            )
 
         if window_indices is not None:
             if (window_indices.ndim != 2) or (window_indices.shape[1] != 2):
@@ -232,14 +228,25 @@ def sample_csr_oneindex(h5object, index):
     x[h5object["indices"][ix0:ix1]] = h5object["data"][ix0:ix1]
     return x
 
+def sample_csr_slice(h5object, ix0, ix1):
+    t = h5object["indptr"][ix0 : ix1 + 2]
+    r = np.repeat(np.arange(ix1-ix0+1), np.diff(t))
+    c = h5object["indices"][t[0]:t[-1]]
+    x = np.zeros((ix1-ix0 + 1, h5object.attrs["shape"][1]), dtype=h5object.attrs["dtypes"][1])
+    x[r, c] = h5object["data"][t[0]:t[-1]]
+    return x
+
 
 def sample_csr(h5object, index):
     if isinstance(index, (int, np.integer)):
         return apply_dtype(h5object, sample_csr_oneindex(h5object, index))
     else:
-        return apply_dtype(
-            h5object, np.stack([sample_csr_oneindex(h5object, i) for i in index])
-        )
+        if index == np.arange(index[0], index[-1]+1):
+            return apply_dtype(h5object, sample_csr_slice(h5object, index[0], index[-1]))
+        else:
+            return apply_dtype(
+                h5object, np.stack([sample_csr_oneindex(h5object, i) for i in index])
+            )
 
 
 def sample_coo(h5object, index):
