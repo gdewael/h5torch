@@ -241,7 +241,7 @@ def sample_csr(h5object, index):
     if isinstance(index, (int, np.integer)):
         return apply_dtype(h5object, sample_csr_oneindex(h5object, index))
     else:
-        if index == np.arange(index[0], index[-1]+1):
+        if (index == np.arange(index[0], index[-1]+1)).all():
             return apply_dtype(h5object, sample_csr_slice(h5object, index[0], index[-1]))
         else:
             return apply_dtype(
