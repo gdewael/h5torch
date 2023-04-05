@@ -42,7 +42,7 @@ autodoc_default_options = {
     'inherited-members' : False
 }
 
-autodoc_inherit_docstrings = False
+autodoc_inherit_docstrings = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
