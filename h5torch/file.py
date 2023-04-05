@@ -4,19 +4,38 @@ import numpy as np
 from typing import Optional, Literal, Union, List, Tuple, Sequence
 import warnings
 
+"""Initializes a file handle to a HDF5 file.
+
+Parameters
+----------
+path : str
+    path to HDF5 file to save (or read) to (or from).
+mode : Literal["r", "r+", "x", "w-", "a", "w"], optional
+    load in the file in read, write, append, ..., mode, by default "r".
+"""
 
 class File(h5py.File):
     def __init__(
         self, path: str, mode: Literal["r", "r+", "x", "w-", "a", "w"] = "r"
     ) -> None:
-        """Initializes a file handle to a HDF5 file.
+        
+        """h5torch.Dataset object.
 
         Parameters
         ----------
         path : str
-            path to HDF5 file to save (or read) to (or from).
-        mode : Literal["r", "r+", "x", "w-", "a", "w"], optional
-            load in the file in read, write, append, ..., mode, by default "r".
+            Path to the saved HDF5 file. Has to follow the logic defined by `h5torch.File`
+        sampling : Union[int, Literal["coo"]], optional
+            Sampling axis, by default 0
+        subset : Optional[Union[Tuple[str, str], np.ndarray]], optional
+            subset of data to use in dataset.
+            Either: a np.ndarray of indices or np.ndarray containing booleans.
+            Or: a tuple of 2 strings with the first specifying a key in the dataset and the second a regex that must match in that dataset.
+            By default None, specifying to use the whole dataset as is.
+        sample_processor : Optional[Callable], optional
+            A callable that takes as input arguments `f` (the file handle to the HDF5 file) and `sample` (the output of this Dataset's __getitem__).
+            Can be used to postprocess samples
+            By default None
         """
 
         super().__init__(path, mode)
