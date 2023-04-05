@@ -18,7 +18,6 @@ class File(h5py.File):
     def __init__(
         self, path: str, mode: Literal["r", "r+", "x", "w-", "a", "w"] = "r"
     ) -> None:
-        
         """h5torch.Dataset object.
 
         Parameters
