@@ -25,7 +25,7 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.6819304"
-     inkscape:cx="497.04791"
+     inkscape:cx="497.04792"
      inkscape:cy="232.76825"
      inkscape:window-width="2560"
      inkscape:window-height="1389"
@@ -1541,15 +1541,20 @@
          y="64.603195">image</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:3.52778px;line-height:1.25;font-family:'Noto Serif';-inkscape-font-specification:'Noto Serif';stroke-width:0.264583"
-       x="20.394218"
-       y="28.25873"
+       style="font-size:3.52778px;line-height:1.25;font-family:'Noto Serif';-inkscape-font-specification:'Noto Serif';text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="26.954489"
+       y="24.640615"
        id="text7871"><tspan
          sodipodi:role="line"
          id="tspan7869"
-         style="font-size:3.52778px;stroke-width:0.264583"
-         x="20.394218"
-         y="28.25873">metadata</tspan></text>
+         style="font-size:3.52778px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="26.954489"
+         y="24.640615">&quot;unstructured&quot;</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:3.52778px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="26.954489"
+         y="29.050339"
+         id="tspan890">metadata</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:'Noto Serif';-inkscape-font-specification:'Noto Serif';stroke-width:0.264583"
