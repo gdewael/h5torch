@@ -2,3 +2,4 @@ h5torch
 nbsphinx
 ipykernel
 myst-parser
+sphinx>=6.1
