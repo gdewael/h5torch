@@ -1,3 +1,4 @@
 h5torch
 nbsphinx
 ipykernel
+myst-parser
