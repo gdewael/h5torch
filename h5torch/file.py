@@ -227,7 +227,7 @@ class File(h5py.File):
         self[name].attrs["dtypes"] = [str(dtype_save_np), str(dtype_load_np)]
         self[name].attrs["filled_to"] = len(data)
 
-    def append(self, name, data):
+    def append(self, data, name):
         if self[name].attrs["mode"] not in ["vlen", "separate", "N-D"]:
             raise ValueError(
                 "Appending is only possible for `N-D`, `vlen`, or `separate` type objects."
