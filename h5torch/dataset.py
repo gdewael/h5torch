@@ -2,7 +2,7 @@ from torch.utils import data
 import h5torch
 from scipy import sparse
 import numpy as np
-from typing import Union, Literal, Tuple, Optional, Callable
+from typing import Union, Literal, Tuple, Optional, Callable, List, Sequence
 import re
 
 
@@ -14,20 +14,23 @@ class Dataset(data.Dataset):
         subset: Optional[Union[Tuple[str, str], np.ndarray]] = None,
         sample_processor: Optional[Callable] = None,
     ):
-        """
-        h5torch.Dataset object.
+        """h5torch.Dataset object.
 
         Parameters
         ----------
-        path: str
-            Path to the saved HDF5 file.
-        sampling: Union[int, Literal[&quot;coo&quot;]]
+        path : str
+            Path to the saved HDF5 file. Has to follow the logic defined by `h5torch.File`
+        sampling : Union[int, Literal["coo"]], optional
             Sampling axis, by default 0
-        subset: Optional[Union[Tuple[str, str], np.ndarray]]
+        subset : Optional[Union[Tuple[str, str], np.ndarray]], optional
             subset of data to use in dataset.
             Either: a np.ndarray of indices or np.ndarray containing booleans.
             Or: a tuple of 2 strings with the first specifying a key in the dataset and the second a regex that must match in that dataset.
             By default None, specifying to use the whole dataset as is.
+        sample_processor : Optional[Callable], optional
+            A callable that takes as input arguments `f` (the file handle to the HDF5 file) and `sample` (the output of this Dataset's __getitem__).
+            Can be used to postprocess samples
+            By default None
         """
         self.f = h5torch.File(path)
         if "central" not in self.f:
@@ -144,8 +147,8 @@ class SliceDataset(Dataset):
         overlap: int = 0,
         window_indices: Optional[np.ndarray] = None,
     ):
-        """
-        h5torch.SliceDataset object. Takes slices from the central object (and the sampled axis) as samples.
+        """h5torch.SliceDataset object.
+        Takes slices from the central object (and the sampled axis) as samples.
         The default behavior is to take slices starting from the first element with size `window_size` and optionally overlapping by `overlap` elements.
         If the last slice of the data would be an incomplete sample, it would be thrown away.
 
@@ -153,18 +156,23 @@ class SliceDataset(Dataset):
 
         Parameters
         ----------
-        path: str
-            Path to the saved HDF5 file.
-        sampling: Union[int, Literal[&quot;coo&quot;]]
+        path : str
+            Path to the saved HDF5 file. Has to follow the logic defined by `h5torch.File`
+        sampling : Union[int, Literal["coo"]], optional
             Sampling axis, by default 0
-        window_size: int
-            Size of the slices in number of elements
-        overlap: int
-            Overlap of each slice in number of elements
-        window_indices: Optional[np.ndarray]
+        sample_processor : Optional[Callable], optional
+            A callable that takes as input arguments `f` (the file handle to the HDF5 file) and `sample` (the output of this Dataset's __getitem__).
+            Can be used to postprocess samples
+            By default None
+        window_size : int, optional
+            Size of the slices in number of elements, by default 501
+        overlap : int, optional
+            Overlap of each slice in number of elements, by default 0
+        window_indices : Optional[np.ndarray], optional
             A np.ndarray of size N x 2 with N the number of slices. Each row specifies the start and end index of each slice.
             (End indices are not included in python-slicing style)
             Can be used to overwrite `window_size` and `overlap` default behavior and/or to specify subsets as training/validation/test sets.
+            By default None
         """
         super().__init__(
             path, sampling=sampling, subset=None, sample_processor=sample_processor
@@ -228,12 +236,15 @@ def sample_csr_oneindex(h5object, index):
     x[h5object["indices"][ix0:ix1]] = h5object["data"][ix0:ix1]
     return x
 
+
 def sample_csr_slice(h5object, ix0, ix1):
     t = h5object["indptr"][ix0 : ix1 + 2]
-    r = np.repeat(np.arange(ix1-ix0+1), np.diff(t))
-    c = h5object["indices"][t[0]:t[-1]]
-    x = np.zeros((ix1-ix0 + 1, h5object.attrs["shape"][1]), dtype=h5object.attrs["dtypes"][1])
-    x[r, c] = h5object["data"][t[0]:t[-1]]
+    r = np.repeat(np.arange(ix1 - ix0 + 1), np.diff(t))
+    c = h5object["indices"][t[0] : t[-1]]
+    x = np.zeros(
+        (ix1 - ix0 + 1, h5object.attrs["shape"][1]), dtype=h5object.attrs["dtypes"][1]
+    )
+    x[r, c] = h5object["data"][t[0] : t[-1]]
     return x
 
 
@@ -241,8 +252,10 @@ def sample_csr(h5object, index):
     if isinstance(index, (int, np.integer)):
         return apply_dtype(h5object, sample_csr_oneindex(h5object, index))
     else:
-        if (index == np.arange(index[0], index[-1]+1)).all():
-            return apply_dtype(h5object, sample_csr_slice(h5object, index[0], index[-1]))
+        if (index == np.arange(index[0], index[-1] + 1)).all():
+            return apply_dtype(
+                h5object, sample_csr_slice(h5object, index[0], index[-1])
+            )
         else:
             return apply_dtype(
                 h5object, np.stack([sample_csr_oneindex(h5object, i) for i in index])

@@ -6,10 +6,20 @@ import warnings
 
 
 class File(h5py.File):
-    def __init__(self, path: str, mode: Literal["r", "r+", "x", "w-", "a", "w"] = "r"):
-        super().__init__(path, mode)
+    def __init__(
+        self, path: str, mode: Literal["r", "r+", "x", "w-", "a", "w"] = "r"
+    ) -> None:
         """Initializes a file handle to a HDF5 file.
+
+        Parameters
+        ----------
+        path : str
+            path to HDF5 file to save (or read) to (or from).
+        mode : Literal["r", "r+", "x", "w-", "a", "w"], optional
+            load in the file in read, write, append, ..., mode, by default "r".
         """
+
+        super().__init__(path, mode)
 
         if mode == "r":
             for key in list(self.keys()):
@@ -19,13 +29,19 @@ class File(h5py.File):
                         filled_to = self[name].attrs["filled_to"]
                         shape = self[name].attrs["shape"][0]
                         if filled_to != shape:
-                            warnings.warn("object \"%s\" has not been completely filled to its pre-specified length (%s / %s filled)" % (name, filled_to, shape))
+                            warnings.warn(
+                                'object "%s" has not been completely filled to its pre-specified length (%s / %s filled)'
+                                % (name, filled_to, shape)
+                            )
                 elif key == "central":
                     name = key
                     filled_to = self[name].attrs["filled_to"]
                     shape = self[name].attrs["shape"][0]
                     if filled_to != shape:
-                        warnings.warn("object \"%s\" has not been completely filled to its pre-specified length (%s / %s filled)" % (name, filled_to, shape))
+                        warnings.warn(
+                            'object "%s" has not been completely filled to its pre-specified length (%s / %s filled)'
+                            % (name, filled_to, shape)
+                        )
 
     def register(
         self,
@@ -52,14 +68,14 @@ class File(h5py.File):
 
             If mode == "separate", expects a List of np.ndarrays
 
-        axis : Union[int, Literal[&quot;central&quot;, &quot;unstructured&quot;]]
+        axis : Union[int, Literal["central", "unstructured"]]
             Axis to align the dataset to. The first dataset that should be registered to a HDF5 file should always be the central dataset.
-        name : Optional[str], optional
-            name of the dataset, ignored in the case of axis == "central", mandatory in the case of an alignment axis, by default None,
         length : Optional[int], optional
             length of the dataset, useful when registering a dataset to which you want to append later
             by default None, which means you will not be able to append to the dataset later.
-        mode : Literal[&quot;N-D&quot;, &quot;csr&quot;, &quot;coo&quot;, &quot;vlen&quot;, &quot;separate&quot;], optional
+        name : Optional[str], optional
+            name of the dataset, ignored in the case of axis == "central", mandatory in the case of an alignment axis, by default None
+        mode : Literal["N-D", "csr", "coo", "vlen", "separate"], optional
             mode in which to save the data, by default "N-D"
         dtype_save : Optional[str], optional
             data type in which to save the data, by default None, which means it uses the datatype as given
@@ -86,7 +102,8 @@ class File(h5py.File):
             data = sparse.csr_matrix(data)
         len_ = (
             (len(data) if not isinstance(data, sparse.csr_matrix) else data.shape[0])
-            if length is None else length
+            if length is None
+            else length
         )
         if (
             mode != "coo"
@@ -122,8 +139,6 @@ class File(h5py.File):
 
         register_fun(data, name, dtype_save, dtype_load, length)
 
-        # data = data.astype(np.dtype(dtype)))
-
     def _ND_register(self, data, name, dtype_save, dtype_load, length):
         dtype_save_np = default_dtype(data, dtype_save)
         dtype_load_np = default_dtype(data, dtype_load)
@@ -131,11 +146,11 @@ class File(h5py.File):
         shape = list(data.shape)
         if length is not None:
             shape[0] = length
-            self.create_dataset(name, shape = shape, dtype = dtype_save_np)
-            self[name][:data.shape[0]] = data.astype(dtype_save_np)
+            self.create_dataset(name, shape=shape, dtype=dtype_save_np)
+            self[name][: data.shape[0]] = data.astype(dtype_save_np)
         else:
             self.create_dataset(name, data=data.astype(dtype_save_np), shape=shape)
-        
+
         self[name].attrs["shape"] = shape
         self[name].attrs["mode"] = "N-D"
         self[name].attrs["dtypes"] = [str(dtype_save_np), str(dtype_load_np)]
@@ -192,10 +207,8 @@ class File(h5py.File):
         shape = [len(data)]
         if length is not None:
             shape[0] = length
-            self.create_dataset(
-                name, dtype=h5py.vlen_dtype(dtype_save_np), shape=shape
-            )
-            self[name][:len(data)] = [d.astype(dtype_save_np) for d in data]
+            self.create_dataset(name, dtype=h5py.vlen_dtype(dtype_save_np), shape=shape)
+            self[name][: len(data)] = [d.astype(dtype_save_np) for d in data]
         else:
             self.create_dataset(
                 name, data=data, dtype=h5py.vlen_dtype(dtype_save_np), shape=shape
@@ -227,7 +240,16 @@ class File(h5py.File):
         self[name].attrs["dtypes"] = [str(dtype_save_np), str(dtype_load_np)]
         self[name].attrs["filled_to"] = len(data)
 
-    def append(self, data, name):
+    def append(self, data: str, name: str) -> None:
+        """Append data to an existing group.
+
+        Parameters
+        ----------
+        data : str
+            The data to append
+        name : str
+            The key / name of the HDF5 dataset to append data to.
+        """
         if self[name].attrs["mode"] not in ["vlen", "separate", "N-D"]:
             raise ValueError(
                 "Appending is only possible for `N-D`, `vlen`, or `separate` type objects."
@@ -244,14 +266,19 @@ class File(h5py.File):
         if self[name].attrs["mode"] == "N-D":
             self[name][start_ix:end_ix] = data.astype(self[name].attrs["dtypes"][0])
             self[name].attrs["filled_to"] = end_ix
-        
+
         if self[name].attrs["mode"] == "vlen":
-            self[name][start_ix:end_ix] = [d.astype(self[name].attrs["dtypes"][0]) for d in data]
+            self[name][start_ix:end_ix] = [
+                d.astype(self[name].attrs["dtypes"][0]) for d in data
+            ]
             self[name].attrs["filled_to"] = end_ix
 
         if self[name].attrs["mode"] == "separate":
             for ix, elem in zip(range(start_ix, end_ix), data):
-                self.create_dataset("%s/%s" % (name, ix), data=elem.astype(self[name].attrs["dtypes"][0]))
+                self.create_dataset(
+                    "%s/%s" % (name, ix),
+                    data=elem.astype(self[name].attrs["dtypes"][0]),
+                )
             self[name].attrs["filled_to"] = end_ix
 
     def __repr__(self):
