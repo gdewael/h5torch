@@ -65,7 +65,7 @@ class Dataset(data.Dataset):
         elif isinstance(subset, tuple):
             matcher = np.vectorize(lambda x: bool(re.match(subset[1], x)))
             subset = np.where(matcher(self.f[subset[0]][:].astype(str)))[0]
-        else:
+        elif subset is None:
             subset = np.arange(self.__len_without_subset__())
         self.indices = subset
 
