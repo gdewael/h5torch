@@ -6,6 +6,7 @@ HDF5 data utilities for PyTorch.
 
 [![PyPi Version](https://img.shields.io/pypi/v/h5torch.svg)](https://pypi.python.org/pypi/h5torch/)
 [![GitHub license](https://img.shields.io/github/license/gdewael/h5torch)](https://github.com/gdewael/h5torch/blob/main/LICENSE)
+[![Documentation](https://readthedocs.org/projects/h5torch/badge/?version=latest&style=flat-default)](https://h5torch.readthedocs.io/en/latest/index.html)
 
 </div>
 
@@ -71,7 +72,7 @@ Once a dataset is created using `h5torch.File`, it can be used as a PyTorch Data
 
 ## Usage
 
-Refer to the tutorial in our docs.
+Refer to the [tutorial on the documentation page](https://h5torch.readthedocs.io/en/latest/tutorial.html).
 
 
 # Package roadmap
@@ -83,4 +84,4 @@ Refer to the tutorial in our docs.
 - [x] Add a slice sampler
 - [x] Implement a way to pre-specify dataset size and append to it
 - [ ] Add tests
-- [ ] Add better docs
+- [x] Add better docs
