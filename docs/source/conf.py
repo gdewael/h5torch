@@ -37,7 +37,7 @@ extensions = [
 autodoc_default_options = {
     'members': True,
     'member-order': 'bysource',
-    'special-members': '__init__',
+    #'special-members': '__init__',
     'exclude-members': '__repr__',
     'inherited-members' : False
 }

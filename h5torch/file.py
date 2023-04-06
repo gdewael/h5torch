@@ -5,19 +5,19 @@ from typing import Optional, Literal, Union, List, Tuple, Sequence
 import warnings
 
 class File(h5py.File):
+    """Initializes a file handle to a HDF5 file.
+
+    Parameters
+    ----------
+    path : str
+        path to HDF5 file to save (or read) to (or from).
+    mode : Literal["r", "r+", "x", "w-", "a", "w"], optional
+        load in the file in read, write, append, ..., mode, by default "r".
+    """
     def __init__(
         self, path: str, mode: Literal["r", "r+", "x", "w-", "a", "w"] = "r"
     ) -> None:
-        """Initializes a file handle to a HDF5 file.
-
-        Parameters
-        ----------
-        path : str
-            path to HDF5 file to save (or read) to (or from).
-        mode : Literal["r", "r+", "x", "w-", "a", "w"], optional
-            load in the file in read, write, append, ..., mode, by default "r".
-        """
-        
+        super().__init__(path, mode)
 
         if mode == "r":
             for key in list(self.keys()):
