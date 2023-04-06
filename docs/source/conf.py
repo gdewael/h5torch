@@ -28,6 +28,7 @@ extensions = []
 templates_path = ['_templates']
 exclude_patterns = []
 extensions = [
+              'readthedocs_ext.readthedocs',
               'sphinx.ext.autodoc',
               'sphinx.ext.napoleon',
               'myst_parser',
@@ -35,14 +36,8 @@ extensions = [
               ]
 
 autodoc_default_options = {
-    'members': True,
     'member-order': 'bysource',
-    #'special-members': '__init__',
-    'exclude-members': '__repr__',
-    'inherited-members' : False
 }
-
-autodoc_inherit_docstrings = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
