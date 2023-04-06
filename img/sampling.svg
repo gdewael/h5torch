@@ -8,7 +8,7 @@
    version="1.1"
    id="svg1825"
    inkscape:version="1.2.2 (b0a8486, 2022-12-01)"
-   sodipodi:docname="h5torchtmp.svg"
+   sodipodi:docname="sampling.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -25,8 +25,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.1893044"
-     inkscape:cx="440.17326"
-     inkscape:cy="474.6472"
+     inkscape:cx="440.59368"
+     inkscape:cy="318.25326"
      inkscape:window-width="2560"
      inkscape:window-height="1389"
      inkscape:window-x="1920"
@@ -41,7 +41,7 @@
      id="layer1"
      transform="translate(0.03249995,-92.959531)">
     <rect
-       style="fill:#000000;fill-opacity:0.503497;stroke:#000000;stroke-width:0.0649999;stroke-linecap:square;stroke-linejoin:round;stroke-opacity:0.5;paint-order:markers fill stroke"
+       style="fill:#808080;fill-opacity:0.503497;stroke:#000000;stroke-width:0.0649999;stroke-linecap:square;stroke-linejoin:round;stroke-opacity:0.5;paint-order:markers fill stroke"
        id="rect24024"
        width="210"
        height="102.5582"
