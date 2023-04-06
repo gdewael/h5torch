@@ -10,7 +10,7 @@ HDF5 data utilities for PyTorch.
 
 </div>
 
-`h5torch` consists of two main parts: (1) `h5torch.File`: a wrapper around `h5py.File` as an interface to create HDF5 files compatible with (2) `h5torch.Dataset`, a wrapper around `torch.utils.data.Dataset`. As a library, `h5torch` establishes a "code" for linking [h5py] and [torch]. To do this, this package has to formulate a vocabulary for how datasets generally look, unifying as many ML settings to the best of its abilities. In turn, this vocabulary allows dataloading of various machine learning data settings from a single dataset class definition, reducing boilerplate in your projects.
+`h5torch` consists of two main parts: (1) `h5torch.File`: a wrapper around `h5py.File` as an interface to create HDF5 files compatible with (2) `h5torch.Dataset`, a wrapper around `torch.utils.data.Dataset`. As a library, `h5torch` establishes a "code" for linking [h5py](https://docs.h5py.org/en/stable/) and [torch](https://pytorch.org/docs/stable/index.html). To do this, this package has to formulate a vocabulary for how datasets generally look, unifying as many ML settings to the best of its abilities. In turn, this vocabulary allows dataloading of various machine learning data settings from a single dataset class definition, reducing boilerplate in your projects.
 
 ### Who is this package for?
 Loading data from HDF5 files allows for efficient data-loading from an **on-disk** format, drastically reducing memory overhead. Additionally, you will find your datasets to be more **organized** using the HDF5 format, as everything is neatly arrayed in a single file.

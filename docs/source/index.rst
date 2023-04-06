@@ -3,9 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to h5torch's documentation!
+h5torch documentation
 ===================================
-HDF5 Data utilities for PyTorch.
+
+`GitHub page <https://github.com/gdewael/h5torch>`_
 
 .. include:: ../../README.md
    :parser: myst_parser.sphinx_
