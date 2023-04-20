@@ -17,7 +17,7 @@ Loading data from HDF5 files allows for efficient data-loading from an **on-disk
 
 If you want to use this package but are not sure your use-case is covered by the current formulation of the package, feel free to open an issue.
 
-## Install
+### Install
 Since PyTorch is a dependency of `h5torch`, we recommend [installing PyTorch](https://pytorch.org/get-started/locally/) independently first, as your system may require a specific version (e.g. CUDA drivers).
 
 After PyTorch installation, `h5torch` can be installed using `pip`
@@ -70,12 +70,12 @@ Once a dataset is created using `h5torch.File`, it can be used as a PyTorch Data
     <img src="https://raw.githubusercontent.com/gdewael/h5torch/main/img/sampling.svg" width="750">
 </p>
 
-## Usage
+### Usage
 
 Refer to the [tutorial on the documentation page](https://h5torch.readthedocs.io/en/latest/tutorial.html).
 
 
-# Package roadmap
+### Package roadmap
 - [x] Implement typing
 - [x] Provide data type conversion capabilities for registering datasets
 - [x] Add support for custom samplers

@@ -205,12 +205,8 @@ class File(h5py.File):
         shape = [len(data)]
         if length is not None:
             shape[0] = length
-            self.create_dataset(name, dtype=h5py.vlen_dtype(dtype_save_np), shape=shape)
-            self[name][: len(data)] = [d.astype(dtype_save_np) for d in data]
-        else:
-            self.create_dataset(
-                name, data=data, dtype=h5py.vlen_dtype(dtype_save_np), shape=shape
-            )
+        self.create_dataset(name, dtype=h5py.vlen_dtype(dtype_save_np), shape=shape)
+        self[name][: len(data)] = [d.astype(dtype_save_np) for d in data]
 
         self[name].attrs["shape"] = shape
         self[name].attrs["mode"] = "vlen"
