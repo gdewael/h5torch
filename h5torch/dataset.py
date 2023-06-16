@@ -107,7 +107,7 @@ class Dataset(data.Dataset):
             for axis, ix in enumerate(indices):
                 if str(axis) in self.f:
                     sample |= self.sample_axis(axis, ix, self.f[str(axis)].keys())
-            return sample
+            return self.sample_processor(self.f, sample)
 
         else:
             if self.f["central"].attrs["mode"] == "N-D":
