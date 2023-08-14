@@ -80,8 +80,9 @@ Refer to the [tutorial on the documentation page](https://h5torch.readthedocs.io
 - [x] Provide data type conversion capabilities for registering datasets
 - [x] Add support for custom samplers
 - [x] Add support for making data splits
-- [ ] Implement a collater for variable length objects
 - [x] Add a slice sampler
 - [x] Implement a way to pre-specify dataset size and append to it
-- [ ] Add tests
 - [x] Add better docs
+- [ ] Add tests
+- [ ] Implement a collater for variable length objects
+- [ ] Benchmarks
