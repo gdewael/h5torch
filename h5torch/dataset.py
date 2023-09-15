@@ -11,8 +11,9 @@ class Dataset(data.Dataset):
 
     Parameters
     ----------
-    path : str
-        Path to the saved HDF5 file. Has to follow the logic defined by `h5torch.File`
+    path : Union[str, h5torch.File],
+        Either string: Path to the saved HDF5 file. Underlying file has to follow the logic defined by `h5torch.File`.
+        Or a h5torch.File handle opened in read mode.
     sampling : Union[int, Literal["coo"]], optional
         Sampling axis, by default 0
     subset : Optional[Union[Tuple[str, str], np.ndarray]], optional
@@ -24,15 +25,28 @@ class Dataset(data.Dataset):
         A callable that takes as input arguments `f` (the file handle to the HDF5 file) and `sample` (the output of this Dataset's __getitem__).
         Can be used to postprocess samples
         By default None
+    in_memory : bool, optional
+        Whether to load the h5torch dataset in memory completely. Allows for speed ups in data-loading. By default False.
+        Requires path to be of type string, if a h5torch.File is passed, the format is determined by how it was opened (controlled by driver = "core").
     """
+
     def __init__(
         self,
-        path: str,
+        path: Union[str, h5torch.File],
         sampling: Union[int, Literal["coo"]] = 0,
         subset: Optional[Union[Tuple[str, str], np.ndarray]] = None,
         sample_processor: Optional[Callable] = None,
-    ):
-        self.f = h5torch.File(path)
+        in_memory=False,
+    ):  
+        if isinstance(path, str):
+            self.f = h5torch.File(path, driver = ("core" if in_memory else None))
+        elif isinstance(path, h5torch.File):
+            self.f = path
+        else:
+            raise ValueError(
+                "Unexpected path type of input."
+            )
+        
         if "central" not in self.f:
             raise ValueError('"central" data object was not found in input file.')
         if (sampling != "coo") and not isinstance(sampling, int):
@@ -147,8 +161,9 @@ class SliceDataset(Dataset):
 
     Parameters
     ----------
-    path : str
-        Path to the saved HDF5 file. Has to follow the logic defined by `h5torch.File`
+    path : Union[str, h5torch.File],
+        Either string: Path to the saved HDF5 file. Underlying file has to follow the logic defined by `h5torch.File`.
+        Or a h5torch.File handle opened in read mode.
     sampling : Union[int, Literal["coo"]], optional
         Sampling axis, by default 0
     sample_processor : Optional[Callable], optional
@@ -165,6 +180,7 @@ class SliceDataset(Dataset):
         Can be used to overwrite `window_size` and `overlap` default behavior and/or to specify subsets as training/validation/test sets.
         By default None
     """
+
     def __init__(
         self,
         path: str,

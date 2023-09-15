@@ -4,6 +4,7 @@ import numpy as np
 from typing import Optional, Literal, Union, List, Tuple, Sequence
 import warnings
 
+
 class File(h5py.File):
     """Initializes a file handle to a HDF5 file.
 
@@ -13,11 +14,19 @@ class File(h5py.File):
         path to HDF5 file to save (or read) to (or from).
     mode : Literal["r", "r+", "x", "w-", "a", "w"], optional
         load in the file in read, write, append, ..., mode, by default "r".
+    driver : Optional[str]
+        see https://docs.h5py.org/en/stable/high/file.html#file-drivers.
+        By default None.
+        Choose "core" to load file in an in-memory format.
     """
+
     def __init__(
-        self, path: str, mode: Literal["r", "r+", "x", "w-", "a", "w"] = "r"
+        self,
+        path: str,
+        mode: Literal["r", "r+", "x", "w-", "a", "w"] = "r",
+        driver=None,
     ) -> None:
-        super().__init__(path, mode)
+        super().__init__(path, mode, driver=driver)
 
         if mode == "r":
             for key in list(self.keys()):
