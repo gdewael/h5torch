@@ -4,7 +4,8 @@ from scipy import sparse
 import numpy as np
 from typing import Union, Literal, Tuple, Optional, Callable, List, Sequence
 import re
-
+import collections
+import h5py
 
 class Dataset(data.Dataset):
     """h5torch.Dataset object.
@@ -26,8 +27,7 @@ class Dataset(data.Dataset):
         Can be used to postprocess samples
         By default None
     in_memory : bool, optional
-        Whether to load the h5torch dataset in memory completely. Allows for speed ups in data-loading. By default False.
-        Requires path to be of type string, if a h5torch.File is passed, the format is determined by how it was opened (controlled by driver = "core").
+        Whether to load the h5torch dataset in memory completely. Allows for speed ups in data-loading. By default False.  
     """
 
     def __init__(
@@ -36,16 +36,18 @@ class Dataset(data.Dataset):
         sampling: Union[int, Literal["coo"]] = 0,
         subset: Optional[Union[Tuple[str, str], np.ndarray]] = None,
         sample_processor: Optional[Callable] = None,
-        in_memory=False,
+        in_memory : bool = False,
     ):  
         if isinstance(path, str):
-            self.f = h5torch.File(path, driver = ("core" if in_memory else None))
+            self.f = h5torch.File(path)
         elif isinstance(path, h5torch.File):
             self.f = path
         else:
             raise ValueError(
                 "Unexpected path type of input."
             )
+        if in_memory:
+            self.f = hdf5_to_dict(self.f)
         
         if "central" not in self.f:
             raise ValueError('"central" data object was not found in input file.')
@@ -179,19 +181,22 @@ class SliceDataset(Dataset):
         (End indices are not included in python-slicing style)
         Can be used to overwrite `window_size` and `overlap` default behavior and/or to specify subsets as training/validation/test sets.
         By default None
+    in_memory : bool, optional
+        Whether to load the h5torch dataset in memory completely. Allows for speed ups in data-loading. By default False.
     """
 
     def __init__(
         self,
-        path: str,
+        path: Union[str, h5torch.File],
         sampling: Union[int, Literal["coo"]] = 0,
         sample_processor: Optional[Callable] = None,
         window_size: int = 501,
         overlap: int = 0,
         window_indices: Optional[np.ndarray] = None,
+        in_memory : bool = False
     ):
         super().__init__(
-            path, sampling=sampling, subset=None, sample_processor=sample_processor
+            path, sampling=sampling, subset=None, sample_processor=sample_processor, in_memory=in_memory
         )
         if not isinstance(sampling, int):
             raise TypeError("`sampling` should be `int`")
@@ -295,3 +300,34 @@ mode_to_sampler = {
     "vlen": sample_vlen,
     "separate": sample_separate,
 }
+
+# this subclass of a normal dict allows to set "attr" attributes
+class h5pyDict(collections.UserDict):
+    def __getitem__(self, key):
+        if "/" in key:
+            return super().__getitem__(key.split("/")[0]).__getitem__("/".join(key.split("/")[1:]))
+        else:
+            return super().__getitem__(key)
+
+# this subclass of a normal ndarray allows to set "attr" attributes     
+class AttrArray(np.ndarray):
+    def __new__(cls, input_array, attrs=None):        
+        obj = np.asarray(input_array).view(cls)
+        obj.attrs = attrs
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None: return
+        self.attrs = getattr(obj, 'attrs', None)
+
+def hdf5_to_dict(hdf):
+    if isinstance(hdf, h5py.Dataset):
+        return AttrArray(hdf[()], attrs = dict(hdf.attrs))
+    dataset = h5pyDict()
+    for k, v in hdf.items():
+        dataset[k] = hdf5_to_dict(v)
+        try:
+            dataset[k].attrs = dict(v.attrs)
+        except:
+            continue
+    return dataset
