@@ -5,6 +5,7 @@ from typing import Optional, Literal, Union, List, Tuple, Sequence
 import warnings
 import collections
 
+
 class File(h5py.File):
     """Initializes a file handle to a HDF5 file.
 
@@ -287,7 +288,7 @@ class File(h5py.File):
     def __repr__(self):
         f = h5py.File.__repr__(self).split("HDF5 file")
         return f[0] + "h5torch file" + f[1]
-    
+
     def to_dict(self):
         """Read the whole hdf5 in memory and returns a dict-like object (h5torch.file.h5pyDict).
         This dict-like object is interoperable with h5torch.Dataset.
@@ -297,7 +298,7 @@ class File(h5py.File):
 
 def hdf5_to_dict(hdf5):
     if isinstance(hdf5, h5py.Dataset):
-        return AttrArray(hdf5[()], attrs = dict(hdf5.attrs))
+        return AttrArray(hdf5[()], attrs=dict(hdf5.attrs))
     dataset = h5pyDict()
     for k, v in hdf5.items():
         dataset[k] = hdf5_to_dict(v)
@@ -307,24 +308,32 @@ def hdf5_to_dict(hdf5):
             continue
     return dataset
 
+
 # this subclass of a normal dict allows to set "attr" attributes
 class h5pyDict(collections.UserDict):
     def __getitem__(self, key):
         if "/" in key:
-            return super().__getitem__(key.split("/")[0]).__getitem__("/".join(key.split("/")[1:]))
+            return (
+                super()
+                .__getitem__(key.split("/")[0])
+                .__getitem__("/".join(key.split("/")[1:]))
+            )
         else:
             return super().__getitem__(key)
 
-# this subclass of a normal ndarray allows to set "attr" attributes     
+
+# this subclass of a normal ndarray allows to set "attr" attributes
 class AttrArray(np.ndarray):
-    def __new__(cls, input_array, attrs=None):        
+    def __new__(cls, input_array, attrs=None):
         obj = np.asarray(input_array).view(cls)
         obj.attrs = attrs
         return obj
 
     def __array_finalize__(self, obj):
-        if obj is None: return
-        self.attrs = getattr(obj, 'attrs', None)
+        if obj is None:
+            return
+        self.attrs = getattr(obj, "attrs", None)
+
 
 def default_dtype(data, dtype):
     if dtype is None:

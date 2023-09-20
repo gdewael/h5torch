@@ -37,8 +37,8 @@ class Dataset(data.Dataset):
         sampling: Union[int, Literal["coo"]] = 0,
         subset: Optional[Union[Tuple[str, str], np.ndarray]] = None,
         sample_processor: Optional[Callable] = None,
-        in_memory : bool = False,
-    ):  
+        in_memory: bool = False,
+    ):
         if isinstance(file, str):
             self.f = h5torch.File(file)
             if in_memory:
@@ -50,10 +50,8 @@ class Dataset(data.Dataset):
         elif isinstance(file, h5torch.file.h5pyDict):
             self.f = file
         else:
-            raise ValueError(
-                "Unexpected file type of input"
-            )
-        
+            raise ValueError("Unexpected file type of input")
+
         if "central" not in self.f:
             raise ValueError('"central" data object was not found in input file.')
         if (sampling != "coo") and not isinstance(sampling, int):
@@ -199,10 +197,14 @@ class SliceDataset(Dataset):
         window_size: int = 501,
         overlap: int = 0,
         window_indices: Optional[np.ndarray] = None,
-        in_memory : bool = False
+        in_memory: bool = False,
     ):
         super().__init__(
-            file, sampling=sampling, subset=None, sample_processor=sample_processor, in_memory=in_memory
+            file,
+            sampling=sampling,
+            subset=None,
+            sample_processor=sample_processor,
+            in_memory=in_memory,
         )
         if not isinstance(sampling, int):
             raise TypeError("`sampling` should be `int`")
