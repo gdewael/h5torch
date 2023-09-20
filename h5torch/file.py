@@ -295,12 +295,12 @@ class File(h5py.File):
         return hdf5_to_dict(self)
 
 
-def hdf5_to_dict(cls):
-    if isinstance(cls, h5py.Dataset):
-        return AttrArray(cls[()], attrs = dict(cls.attrs))
+def hdf5_to_dict(hdf5):
+    if isinstance(hdf5, h5py.Dataset):
+        return AttrArray(hdf5[()], attrs = dict(hdf5.attrs))
     dataset = h5pyDict()
-    for k, v in cls.items():
-        dataset[k] = File.hdf5_to_dict(v)
+    for k, v in hdf5.items():
+        dataset[k] = hdf5_to_dict(v)
         try:
             dataset[k].attrs = dict(v.attrs)
         except:
