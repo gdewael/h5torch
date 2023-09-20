@@ -4,17 +4,17 @@ from scipy import sparse
 import numpy as np
 from typing import Union, Literal, Tuple, Optional, Callable, List, Sequence
 import re
-import collections
-import h5py
+
 
 class Dataset(data.Dataset):
     """h5torch.Dataset object.
 
     Parameters
     ----------
-    path : Union[str, h5torch.File],
+    file : Union[str, h5torch.File, h5torch.file.h5pyDict],
         Either string: Path to the saved HDF5 file. Underlying file has to follow the logic defined by `h5torch.File`.
-        Or a h5torch.File handle opened in read mode.
+        Or: a h5torch.File handle opened in read mode.
+        Or: a h5pyDict, the type of dict created by calling `.todict()` on a h5torch.File.
     sampling : Union[int, Literal["coo"]], optional
         Sampling axis, by default 0
     subset : Optional[Union[Tuple[str, str], np.ndarray]], optional
@@ -27,27 +27,32 @@ class Dataset(data.Dataset):
         Can be used to postprocess samples
         By default None
     in_memory : bool, optional
-        Whether to load the h5torch dataset in memory completely. Allows for speed ups in data-loading. By default False.  
+        Whether to load the h5torch dataset in memory completely. Allows for speed ups in data-loading. By default False.
+        Redundant if a  h5pyDict is passed, as everything is already in memory.
     """
 
     def __init__(
         self,
-        path: Union[str, h5torch.File],
+        file: Union[str, h5torch.File, h5torch.file.h5pyDict],
         sampling: Union[int, Literal["coo"]] = 0,
         subset: Optional[Union[Tuple[str, str], np.ndarray]] = None,
         sample_processor: Optional[Callable] = None,
         in_memory : bool = False,
     ):  
-        if isinstance(path, str):
-            self.f = h5torch.File(path)
-        elif isinstance(path, h5torch.File):
-            self.f = path
+        if isinstance(file, str):
+            self.f = h5torch.File(file)
+            if in_memory:
+                self.f = self.f.to_dict()
+        elif isinstance(file, h5torch.File):
+            self.f = file
+            if in_memory:
+                self.f = self.f.to_dict()
+        elif isinstance(file, h5torch.file.h5pyDict):
+            self.f = file
         else:
             raise ValueError(
-                "Unexpected path type of input."
+                "Unexpected file type of input"
             )
-        if in_memory:
-            self.f = hdf5_to_dict(self.f)
         
         if "central" not in self.f:
             raise ValueError('"central" data object was not found in input file.')
@@ -163,9 +168,10 @@ class SliceDataset(Dataset):
 
     Parameters
     ----------
-    path : Union[str, h5torch.File],
+    file : Union[str, h5torch.File, h5torch.file.h5pyDict],
         Either string: Path to the saved HDF5 file. Underlying file has to follow the logic defined by `h5torch.File`.
-        Or a h5torch.File handle opened in read mode.
+        Or: a h5torch.File handle opened in read mode.
+        Or: a h5pyDict, the type of dict created by calling `.todict()` on a h5torch.File.
     sampling : Union[int, Literal["coo"]], optional
         Sampling axis, by default 0
     sample_processor : Optional[Callable], optional
@@ -187,7 +193,7 @@ class SliceDataset(Dataset):
 
     def __init__(
         self,
-        path: Union[str, h5torch.File],
+        file: Union[str, h5torch.File, h5torch.file.h5pyDict],
         sampling: Union[int, Literal["coo"]] = 0,
         sample_processor: Optional[Callable] = None,
         window_size: int = 501,
@@ -196,7 +202,7 @@ class SliceDataset(Dataset):
         in_memory : bool = False
     ):
         super().__init__(
-            path, sampling=sampling, subset=None, sample_processor=sample_processor, in_memory=in_memory
+            file, sampling=sampling, subset=None, sample_processor=sample_processor, in_memory=in_memory
         )
         if not isinstance(sampling, int):
             raise TypeError("`sampling` should be `int`")
@@ -300,34 +306,3 @@ mode_to_sampler = {
     "vlen": sample_vlen,
     "separate": sample_separate,
 }
-
-# this subclass of a normal dict allows to set "attr" attributes
-class h5pyDict(collections.UserDict):
-    def __getitem__(self, key):
-        if "/" in key:
-            return super().__getitem__(key.split("/")[0]).__getitem__("/".join(key.split("/")[1:]))
-        else:
-            return super().__getitem__(key)
-
-# this subclass of a normal ndarray allows to set "attr" attributes     
-class AttrArray(np.ndarray):
-    def __new__(cls, input_array, attrs=None):        
-        obj = np.asarray(input_array).view(cls)
-        obj.attrs = attrs
-        return obj
-
-    def __array_finalize__(self, obj):
-        if obj is None: return
-        self.attrs = getattr(obj, 'attrs', None)
-
-def hdf5_to_dict(hdf):
-    if isinstance(hdf, h5py.Dataset):
-        return AttrArray(hdf[()], attrs = dict(hdf.attrs))
-    dataset = h5pyDict()
-    for k, v in hdf.items():
-        dataset[k] = hdf5_to_dict(v)
-        try:
-            dataset[k].attrs = dict(v.attrs)
-        except:
-            continue
-    return dataset
