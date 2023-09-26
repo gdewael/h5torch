@@ -320,6 +320,9 @@ class h5pyDict(collections.UserDict):
             )
         else:
             return super().__getitem__(key)
+        
+    def close(self):
+        pass
 
 
 # this subclass of a normal ndarray allows to set "attr" attributes
