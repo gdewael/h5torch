@@ -298,7 +298,7 @@ def sample_coo(h5object, index):
 
 
 def apply_dtype(h5object, data):
-    return data.astype(h5object.attrs["dtypes"][1])
+    return data.astype(h5object.attrs["dtypes"][1]).view(np.ndarray)
 
 
 mode_to_sampler = {
