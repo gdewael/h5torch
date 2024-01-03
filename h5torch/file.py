@@ -60,6 +60,7 @@ class File(h5py.File):
         mode: Literal["N-D", "csr", "coo", "vlen", "separate"] = "N-D",
         dtype_save: Optional[str] = None,
         dtype_load: Optional[str] = None,
+        csr_load_sparse: bool = False,
     ) -> None:
         """Registers a new dataset to a HDF5 file.
 
@@ -89,6 +90,8 @@ class File(h5py.File):
             data type in which to save the data, by default None, which means it uses the datatype as given
         dtype_load : Optional[str], optional
             data type in which to load the data, by default None, which means it uses the datatype as given
+        csr_load_sparse : bool, optional
+            For csr objects, whether it should be loaded as a dense array or a sparse collection of indices and data.
         """
         if isinstance(name, str) and ("/" in name):
             raise ValueError(
@@ -128,6 +131,8 @@ class File(h5py.File):
             )
         if (mode == "coo") and (axis not in ["central", "unstructured"]):
             raise ValueError("COO sparse matrix not supported for `axis` data objects.")
+        if (mode != "csr") and (csr_load_sparse == True):
+            raise ValueError("`csr_load_sparse = True` can only be used with csr objects.")
 
         if mode == "N-D":
             register_fun = self._ND_register
@@ -145,7 +150,10 @@ class File(h5py.File):
         else:
             name = "%s/%s" % (axis, name)
 
-        register_fun(data, name, dtype_save, dtype_load, length)
+        if csr_load_sparse:
+            register_fun(data, name, dtype_save, dtype_load, length, csr_load_sparse = True)
+        else:
+            register_fun(data, name, dtype_save, dtype_load, length)
 
     def _ND_register(self, data, name, dtype_save, dtype_load, length):
         dtype_save_np = default_dtype(data, dtype_save)
@@ -164,7 +172,7 @@ class File(h5py.File):
         self[name].attrs["dtypes"] = [str(dtype_save_np), str(dtype_load_np)]
         self[name].attrs["filled_to"] = data.shape[0]
 
-    def _csr_register(self, data, name, dtype_save, dtype_load, length):
+    def _csr_register(self, data, name, dtype_save, dtype_load, length, csr_load_sparse = False):
         if length is not None:
             raise ValueError("pre-specifying length is ambiguous for csr-type objects")
 
@@ -181,6 +189,7 @@ class File(h5py.File):
         self[name].attrs["mode"] = "csr"
         self[name].attrs["dtypes"] = [str(dtype_save_np), str(dtype_load_np)]
         self[name].attrs["filled_to"] = shape[0]
+        self[name].attrs["load_sparse"] = csr_load_sparse
 
     def _coo_register(self, data, name, dtype_save, dtype_load, length):
         if length is not None:

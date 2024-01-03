@@ -261,12 +261,19 @@ def sample_separate(h5object, index):
 
 def sample_csr_oneindex(h5object, index):
     ix0, ix1 = h5object["indptr"][index : index + 2]
-    x = np.zeros(h5object.attrs["shape"][1], dtype=h5object.attrs["dtypes"][1])
-    x[h5object["indices"][ix0:ix1]] = h5object["data"][ix0:ix1]
-    return x
+    ixes = h5object["indices"][ix0:ix1]
+    content = h5object["data"][ix0:ix1]
+    if ("load_sparse" in h5object.attrs) and (h5object.attrs["load_sparse"] == True):
+        return ixes, content
+    else:
+        x = np.zeros(h5object.attrs["shape"][1], dtype=h5object.attrs["dtypes"][1])
+        x[ixes] = content
+        return x
 
 
 def sample_csr_slice(h5object, ix0, ix1):
+    if ("load_sparse" in h5object.attrs) and (h5object.attrs["load_sparse"] == True):
+        raise ValueError("sparse loading of csr files is incompatible with sparse loading.")
     t = h5object["indptr"][ix0 : ix1 + 2]
     r = np.repeat(np.arange(ix1 - ix0 + 1), np.diff(t))
     c = h5object["indices"][t[0] : t[-1]]
