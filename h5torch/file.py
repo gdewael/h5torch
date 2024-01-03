@@ -109,7 +109,7 @@ class File(h5py.File):
             raise ValueError(
                 "given alignment axis exceeds the number of axes in central data object"
             )
-        if mode == "csr":
+        if (mode == "csr") and (not isinstance(data, sparse.csr_matrix)):
             data = sparse.csr_matrix(data)
         len_ = (
             (len(data) if not isinstance(data, sparse.csr_matrix) else data.shape[0])
