@@ -288,7 +288,7 @@ def sample_csr(h5object, index):
     if isinstance(index, (int, np.integer)):
         if ("load_sparse" in h5object.attrs) and (h5object.attrs["load_sparse"] == True):
             ixes, content = sample_csr_oneindex(h5object, index)
-            return ixes, apply_dtype(h5object, content)
+            return ixes.view(np.ndarray), apply_dtype(h5object, content)
         else:
             return apply_dtype(h5object, sample_csr_oneindex(h5object, index))
     else:
