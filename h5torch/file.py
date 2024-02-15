@@ -132,7 +132,9 @@ class File(h5py.File):
         if (mode == "coo") and (axis not in ["central", "unstructured"]):
             raise ValueError("COO sparse matrix not supported for `axis` data objects.")
         if (mode != "csr") and (csr_load_sparse == True):
-            raise ValueError("`csr_load_sparse = True` can only be used with csr objects.")
+            raise ValueError(
+                "`csr_load_sparse = True` can only be used with csr objects."
+            )
 
         if mode == "N-D":
             register_fun = self._ND_register
@@ -151,7 +153,9 @@ class File(h5py.File):
             name = "%s/%s" % (axis, name)
 
         if csr_load_sparse:
-            register_fun(data, name, dtype_save, dtype_load, length, csr_load_sparse = True)
+            register_fun(
+                data, name, dtype_save, dtype_load, length, csr_load_sparse=True
+            )
         else:
             register_fun(data, name, dtype_save, dtype_load, length)
 
@@ -172,23 +176,33 @@ class File(h5py.File):
         self[name].attrs["dtypes"] = [str(dtype_save_np), str(dtype_load_np)]
         self[name].attrs["filled_to"] = data.shape[0]
 
-    def _csr_register(self, data, name, dtype_save, dtype_load, length, csr_load_sparse = False):
-        if length is not None:
-            raise ValueError("pre-specifying length is ambiguous for csr-type objects")
-
+    def _csr_register(
+        self, data, name, dtype_save, dtype_load, length, csr_load_sparse=False
+    ):
         dtype_save_np = default_dtype(data.data, dtype_save)
         dtype_load_np = default_dtype(data.data, dtype_load)
 
         shape = list(data.shape)
 
-        self.create_dataset("%s/data" % name, data=data.data.astype(dtype_save_np))
-        self.create_dataset("%s/indices" % name, data=data.indices)
-        self.create_dataset("%s/indptr" % name, data=data.indptr)
+        if length is not None:
+            shape[0] = length
+            self.create_dataset("%s/indptr" % name, shape=shape[0] + 1)
+            self["%s/indptr" % name][: len(data.indptr)] = data.indptr
+            self.create_dataset(
+                "%s/data" % name, data=data.data.astype(dtype_save_np), maxshape=(None,)
+            )
+            self.create_dataset(
+                "%s/indices" % name, data=data.indices, maxshape=(None,)
+            )
+        else:
+            self.create_dataset("%s/indptr" % name, data=data.indptr)
+            self.create_dataset("%s/data" % name, data=data.data.astype(dtype_save_np))
+            self.create_dataset("%s/indices" % name, data=data.indices)
 
         self[name].attrs["shape"] = shape
         self[name].attrs["mode"] = "csr"
         self[name].attrs["dtypes"] = [str(dtype_save_np), str(dtype_load_np)]
-        self[name].attrs["filled_to"] = shape[0]
+        self[name].attrs["filled_to"] = data.shape[0]
         self[name].attrs["load_sparse"] = csr_load_sparse
 
     def _coo_register(self, data, name, dtype_save, dtype_load, length):
@@ -263,13 +277,19 @@ class File(h5py.File):
         name : str
             The key / name of the HDF5 dataset to append data to.
         """
-        if self[name].attrs["mode"] not in ["vlen", "separate", "N-D"]:
+        if self[name].attrs["mode"] not in ["vlen", "separate", "N-D", "csr"]:
             raise ValueError(
-                "Appending is only possible for `N-D`, `vlen`, or `separate` type objects."
+                "Appending is only possible for `N-D`, `vlen`, `csr`, or `separate` type objects."
             )
+        if (self[name].attrs["mode"] == "csr") and (
+            not isinstance(data, sparse.csr_matrix)
+        ):
+            data = sparse.csr_matrix(data)
 
         start_ix = self[name].attrs["filled_to"]
-        end_ix = start_ix + len(data)
+        end_ix = start_ix + (
+            len(data) if self[name].attrs["mode"] != "csr" else data.shape[0]
+        )
         if end_ix > self[name].attrs["shape"][0]:
             raise ValueError(
                 "Appended data would exceed data size limits: slice = %s:%s, dataset length = %s"
@@ -293,6 +313,23 @@ class File(h5py.File):
                     data=elem.astype(self[name].attrs["dtypes"][0]),
                 )
             self[name].attrs["filled_to"] = end_ix
+
+        if self[name].attrs["mode"] == "csr":
+            indptr_fill = data.indptr[1:] + self["%s/indptr" % name][start_ix]
+            self["%s/indptr" % name][start_ix:end_ix] = indptr_fill
+            self[name].attrs["filled_to"] = end_ix
+
+            self["%s/data" % name].resize(
+                self["%s/data" % name].shape[0] + len(data.data), axis=0
+            )
+            self["%s/data" % name][-len(data.data) :] = data.data.astype(
+                self[name].attrs["dtypes"][0]
+            )
+
+            self["%s/indices" % name].resize(
+                self["%s/indices" % name].shape[0] + len(data.indices), axis=0
+            )
+            self["%s/indices" % name][-len(data.indices) :] = data.indices
 
     def __repr__(self):
         f = h5py.File.__repr__(self).split("HDF5 file")
@@ -329,7 +366,7 @@ class h5pyDict(collections.UserDict):
             )
         else:
             return super().__getitem__(key)
-        
+
     def close(self):
         pass
 

@@ -273,7 +273,9 @@ def sample_csr_oneindex(h5object, index):
 
 def sample_csr_slice(h5object, ix0, ix1):
     if ("load_sparse" in h5object.attrs) and (h5object.attrs["load_sparse"] == True):
-        raise ValueError("sparse loading of csr files is incompatible with slice sampling.")
+        raise ValueError(
+            "sparse loading of csr files is incompatible with slice sampling."
+        )
     t = h5object["indptr"][ix0 : ix1 + 2]
     r = np.repeat(np.arange(ix1 - ix0 + 1), np.diff(t))
     c = h5object["indices"][t[0] : t[-1]]
@@ -286,7 +288,9 @@ def sample_csr_slice(h5object, ix0, ix1):
 
 def sample_csr(h5object, index):
     if isinstance(index, (int, np.integer)):
-        if ("load_sparse" in h5object.attrs) and (h5object.attrs["load_sparse"] == True):
+        if ("load_sparse" in h5object.attrs) and (
+            h5object.attrs["load_sparse"] == True
+        ):
             ixes, content = sample_csr_oneindex(h5object, index)
             return ixes.view(np.ndarray), apply_dtype(h5object, content)
         else:
@@ -297,8 +301,12 @@ def sample_csr(h5object, index):
                 h5object, sample_csr_slice(h5object, index[0], index[-1])
             )
         else:
-            if ("load_sparse" in h5object.attrs) and (h5object.attrs["load_sparse"] == True):
-                raise ValueError("sparse loading of csr files is incompatible with multi-index sampling.")
+            if ("load_sparse" in h5object.attrs) and (
+                h5object.attrs["load_sparse"] == True
+            ):
+                raise ValueError(
+                    "sparse loading of csr files is incompatible with multi-index sampling."
+                )
             return apply_dtype(
                 h5object, np.stack([sample_csr_oneindex(h5object, i) for i in index])
             )
