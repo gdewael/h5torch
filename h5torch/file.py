@@ -318,7 +318,7 @@ class File(h5py.File):
 
         if self[name].attrs["mode"] == "csr":
             indptr_fill = data.indptr[1:] + self["%s/indptr" % name][start_ix]
-            self["%s/indptr" % name][start_ix:end_ix] = indptr_fill
+            self["%s/indptr" % name][start_ix+1:end_ix+1] = indptr_fill
             self[name].attrs["filled_to"] = end_ix
 
             self["%s/data" % name].resize(
