@@ -186,7 +186,9 @@ class File(h5py.File):
 
         if length is not None:
             shape[0] = length
-            self.create_dataset("%s/indptr" % name, shape=shape[0] + 1)
+            self.create_dataset(
+                "%s/indptr" % name, shape=shape[0] + 1, dtype=data.indptr.dtype
+            )
             self["%s/indptr" % name][: len(data.indptr)] = data.indptr
             self.create_dataset(
                 "%s/data" % name, data=data.data.astype(dtype_save_np), maxshape=(None,)
