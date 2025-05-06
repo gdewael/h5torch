@@ -131,7 +131,7 @@ class Dataset(data.Dataset):
         else:
             if self.f["central"].attrs["mode"] == "N-D":
                 sample["central"] = apply_dtype(
-                    self.f["central"], np.take(self.f["central"], index, self.sampling)
+                    self.f["central"], sample_central(self.f["central"], index, self.sampling)
                 )
             else:
                 sample["central"] = mode_to_sampler[self.f["central"].attrs["mode"]](
@@ -240,6 +240,10 @@ class SliceDataset(Dataset):
 
 sample_default = lambda h5object, index: apply_dtype(h5object, h5object[index])
 
+def sample_central(h5object, index, axis):
+    selection = [slice(None)] * h5object.ndim
+    selection[axis] = index
+    return h5object[tuple(selection)]
 
 def sample_vlen(h5object, index):
     if isinstance(index, (int, np.integer)):
