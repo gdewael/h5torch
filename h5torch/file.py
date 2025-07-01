@@ -165,6 +165,8 @@ class File(h5py.File):
 
         shape = list(data.shape)
         if length is not None:
+            if np.issubdtype(dtype_save_np, np.dtype("bytes")):
+                raise ValueError("pre-specifying length does not work for bytes data types.")
             shape[0] = length
             self.create_dataset(name, shape=shape, dtype=dtype_save_np)
             self[name][: data.shape[0]] = data.astype(dtype_save_np)
